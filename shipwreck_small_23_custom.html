@@ -1,0 +1,86 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="description" content="">
+	<meta name="author" content="">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+	<title>Potree Viewer - shipwreck_small_23</title>
+
+	<!-- Reverting to all local libraries to ensure compatibility -->
+	<link rel="stylesheet" type="text/css" href="libs/potree/potree.css">
+	<link rel="stylesheet" type="text/css" href="libs/jquery-ui/jquery-ui.min.css">
+	<link rel="stylesheet" type="text/css" href="libs/openlayers3/ol.css">
+	<link rel="stylesheet" type="text/css" href="libs/spectrum/spectrum.css">
+	<link rel="stylesheet" type="text/css" href="libs/jstree/themes/mixed/style.css">
+</head>
+
+<body>
+	<!-- Reverting to all local libraries to ensure compatibility -->
+	<script src="libs/jquery/jquery-3.1.1.min.js"></script>
+	<script src="libs/spectrum/spectrum.js"></script>
+	<script src="libs/jquery-ui/jquery-ui.min.js"></script>
+	<script src="libs/three.js/build/three.min.js"></script>
+	<script src="libs/other/BinaryHeap.js"></script>
+	<script src="libs/tween/tween.min.js"></script>
+	<script src="libs/d3/d3.js"></script>
+	<script src="libs/proj4/proj4.js"></script>
+	<script src="libs/openlayers3/ol.js"></script>
+	<script src="libs/i18next/i18next.js"></script>
+	<script src="libs/jstree/jstree.js"></script>
+	<script src="libs/potree/potree.js"></script>
+	<script src="libs/plasio/js/laslaz.js"></script>
+	
+	<div class="potree_container" style="position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; ">
+		<div id="potree_render_area"></div>
+		<div id="potree_sidebar_container"> </div>
+	</div>
+	
+	<script>
+		// Use window.onload to ensure all local and CDN scripts are fully loaded
+		// before trying to initialize the viewer.
+		window.onload = function() {
+			try {
+				// Set the worker path to the local directory
+				Potree.workerPath = "libs/potree/workers";
+
+				window.viewer = new Potree.Viewer(document.getElementById("potree_render_area"));
+				
+				viewer.setEDLEnabled(true);
+				viewer.setFOV(60);
+				viewer.setPointBudget(3_000_000);
+				viewer.loadSettingsFromURL();
+				
+				viewer.loadGUI(() => {
+					viewer.setLanguage('en');
+					$("#menu_appearance").next().show();
+					$("#menu_tools").next().show();
+					viewer.toggleSidebar();
+				});
+				
+				Potree.loadPointCloud("pointclouds/shipwreck_small_23/cloud.js", "shipwreck_small_23", e => {
+					let pointcloud = e.pointcloud;
+					viewer.scene.addPointCloud(pointcloud);
+					let material = pointcloud.material;
+					
+					// --- OUR CUSTOM SETTINGS ---
+					material.activeAttributeName = "elevation";
+					material.gradient = Potree.Gradients.VIRIDIS;
+					material.elevationRange = [-5.912, 0.189];
+					material.size = 1;
+					material.pointSizeType = Potree.PointSizeType.FIXED;
+					material.shape = Potree.PointShape.CIRCLE;
+
+                    // Manually set the initial camera view with hardcoded coordinates
+                    viewer.scene.view.position.set(370289.4177079082, 4726235.415564897, 16.078144944900625);
+                    viewer.scene.view.lookAt(new THREE.Vector3(370289.4177079082, 4726280.870712765, -2.8615));
+				});
+			} catch (e) {
+				console.error("Failed to initialize Potree viewer:", e);
+				document.body.innerHTML = `<h1>Error loading viewer</h1><p>Please check the developer console (F12) for details.</p><pre>${e.stack}</pre>`;
+			}
+		};
+	</script>
+</body>
+</html>
